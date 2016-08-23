@@ -1,0 +1,28 @@
+{
+  "version": "1.0.0-alpha",
+  "packOptions": {
+    "owners": [ "Jakub So³tys" ],
+    "tags": [ "serverless", "azure", "azure functions" ],
+    "licenseUrl": "....",
+    "requireLicenseAcceptance": false,
+    "iconUrl": "...",
+    
+    "summary": "ServerlessFabric is a library which helps to integrate with Azure Functions."
+  },
+  "dependencies": {
+    "NETStandard.Library": "1.6.0",
+    "Microsoft.AspNetCore.Mvc": "1.0.0",
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
+    "Microsoft.AspNetCore.WebUtilities": "1.0.0"
+  },
+  "frameworks": {
+    "net46": {},
+    "net461": {},
+    "netstandard1.6": {
+      "dependencies": {
+        "System.Reflection.Emit": "4.0.1"
+      },
+      "imports": [ "net46", "net461" ]
+    }
+  }
+}
