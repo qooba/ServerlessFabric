@@ -15,7 +15,7 @@ namespace Qooba.ServerlessFabric
 
         private static IDictionary<Type, object> actorProxies = new ConcurrentDictionary<Type, object>();
 
-#if NET461
+#if (NET46 || NET461)
         private static Lazy<ModuleBuilder> mb = new Lazy<ModuleBuilder>(() => AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(ActorConstants.ASSEMBLY_NAME), AssemblyBuilderAccess.Run).DefineDynamicModule(ActorConstants.MODULE_NAME));
 #else
         private static Lazy<ModuleBuilder> mb = new Lazy<ModuleBuilder>(() => AssemblyBuilder.DefineDynamicAssembly(new AssemblyName(ActorConstants.ASSEMBLY_NAME), AssemblyBuilderAccess.Run).DefineDynamicModule(ActorConstants.MODULE_NAME));

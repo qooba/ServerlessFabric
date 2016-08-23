@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.WebUtilities;
-using Qooba.ServerlessFabric.Abstractions;
+﻿using Qooba.ServerlessFabric.Abstractions;
 using System;
 using System.Linq;
 using System.Net.Http;
@@ -89,7 +88,12 @@ namespace Qooba.ServerlessFabric
             var requestUri = new Uri(url);
 
             var methodNameQueryString = ActorMethodHelper.PrepareMethodQueryString(methodName, requestName, responseName);
-            if (QueryHelpers.ParseQuery(requestUri.Query).Any())
+
+#if (NET46 || NET461)
+            if (requestUri.ParseQueryString().Count > 0)
+#else
+            if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(requestUri.Query).Any())
+#endif
             {
                 url += $"&{ActorConstants.METHOD_NAME}={methodNameQueryString}";
             }

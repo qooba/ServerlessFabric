@@ -12,7 +12,8 @@ namespace Qooba.ServerlessFabric
     public class ActorResponseFactory : IActorResponseFactory
     {
         private static IDictionary<Type, Type> actorResponseWrappers = new ConcurrentDictionary<Type, Type>();
-#if NET461
+
+#if (NET46 || NET461)
         private static Lazy<ModuleBuilder> mb = new Lazy<ModuleBuilder>(() => AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(ActorConstants.RESPONSE_ASSEMBLY_NAME), AssemblyBuilderAccess.Run).DefineDynamicModule(ActorConstants.RESPONSE_MODULE_NAME));
 #else
         private static Lazy<ModuleBuilder> mb = new Lazy<ModuleBuilder>(() => AssemblyBuilder.DefineDynamicAssembly(new AssemblyName(ActorConstants.RESPONSE_ASSEMBLY_NAME), AssemblyBuilderAccess.Run).DefineDynamicModule(ActorConstants.RESPONSE_MODULE_NAME));

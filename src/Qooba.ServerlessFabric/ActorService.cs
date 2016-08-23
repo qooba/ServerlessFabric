@@ -2,7 +2,6 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Net;
-using Microsoft.AspNetCore.WebUtilities;
 using System.Text;
 using Qooba.ServerlessFabric.Abstractions;
 
@@ -44,7 +43,12 @@ namespace Qooba.ServerlessFabric
         {
             var actorInstance = actorFactory();
 
-            string methodName = QueryHelpers.ParseQuery(req.RequestUri.Query)[ActorConstants.METHOD_NAME];
+#if (NET46 || NET461)
+            string methodName = req.RequestUri.ParseQueryString()[ActorConstants.METHOD_NAME];
+#else
+            string methodName = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(req.RequestUri.Query)[ActorConstants.METHOD_NAME];
+#endif
+
             var actorMethod = this.actorServiceInitializer.PreapareActorMethod(actorInstance, methodName);
             var request = await req.Content.ReadAsStringAsync();
             var response = await actorMethod(actorInstance, request);

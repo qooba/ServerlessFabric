@@ -1,26 +1,37 @@
 {
-  "version": "1.0.0-alpha",
+  "version": "1.0.0-alpha2",
   "packOptions": {
     "owners": [ "Jakub So³tys" ],
     "tags": [ "serverless", "azure", "azure functions" ],
-    "licenseUrl": "....",
+    "licenseUrl": "https://raw.github.com/qooba/ServerlessFabric/master/LICENSE",
     "requireLicenseAcceptance": false,
-    "iconUrl": "...",
-    
-    "summary": "ServerlessFabric is a library which helps to integrate with Azure Functions."
+    "iconUrl": "https://raw.githubusercontent.com/qooba/ServerlessFabric/master/icon.png",
+
+    "summary": ".NET library for creating serverless actors microservices using Azure Functions."
   },
   "dependencies": {
-    "NETStandard.Library": "1.6.0",
-    "Microsoft.AspNetCore.Mvc": "1.0.0",
-    "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
-    "Microsoft.AspNetCore.WebUtilities": "1.0.0"
+    
   },
   "frameworks": {
-    "net46": {},
-    "net461": {},
+    "net46": {
+      "dependencies": {
+        "Microsoft.AspNet.WebApi.Client": "5.2.3",
+        "Microsoft.AspNet.WebApi": "5.2.3"
+      }
+    },
+    "net461": {
+      "dependencies": {
+        "Microsoft.AspNet.WebApi.Client": "5.2.3",
+        "Microsoft.AspNet.WebApi": "5.2.3"
+      }
+    },
     "netstandard1.6": {
       "dependencies": {
-        "System.Reflection.Emit": "4.0.1"
+        "System.Reflection.Emit": "4.0.1",
+        "NETStandard.Library": "1.6.0",
+        "Microsoft.AspNetCore.Mvc": "1.0.0",
+        "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
+        "Microsoft.AspNetCore.WebUtilities": "1.0.0"
       },
       "imports": [ "net46", "net461" ]
     }
