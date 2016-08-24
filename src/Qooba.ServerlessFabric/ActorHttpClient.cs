@@ -37,7 +37,12 @@ namespace Qooba.ServerlessFabric
             using (var client = new HttpClient())
             {
                 client.BaseAddress = PrepareUri(url, methodName, typeof(TRequest).Name, string.Empty);
-                await PostAsync(request, client);
+                var response = await PostAsync(request, client);
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorMessage = await response.Content.ReadAsStringAsync();
+                    throw new Exception(errorMessage);
+                }
             }
         }
 
@@ -69,17 +74,29 @@ namespace Qooba.ServerlessFabric
             {
                 var jsonContent = await response.Content.ReadAsStringAsync();
                 resp = (TResponse)this.serializer.DeserializeObject(jsonContent, actorResponseWrapper);
-                actorResponseMessage = ((IActorResponseMessage)resp);
+                actorResponseMessage = resp as IActorResponseMessage;
             }
             else
             {
                 resp = (TResponse)this.expressionHelper.CreateInstance(actorResponseWrapper);
-                actorResponseMessage = ((IActorResponseMessage)resp);
-                actorResponseMessage.ErrorMessage = await response.Content.ReadAsStringAsync();
+                var errorMessage = await response.Content.ReadAsStringAsync();
+                actorResponseMessage = resp as IActorResponseMessage;
+                if (actorResponseMessage != null)
+                {
+                    actorResponseMessage.ErrorMessage = errorMessage;
+                }
+                else
+                {
+                    throw new Exception(errorMessage);
+                }
             }
 
-            actorResponseMessage.StatusCode = response.StatusCode;
-            actorResponseMessage.Headers = response.Headers;
+            if (actorResponseMessage != null)
+            {
+                actorResponseMessage.StatusCode = response.StatusCode;
+                actorResponseMessage.Headers = response.Headers;
+            }
+
             return resp;
         }
 

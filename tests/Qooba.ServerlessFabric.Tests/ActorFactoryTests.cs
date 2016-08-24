@@ -26,6 +26,7 @@ namespace Qooba.ServerlessFabric.Tests
             this.actorClientMock = new Mock<IActorClient>();
             this.actorClientManagerMock = new Mock<IActorClientManager>();
             this.actorClientManagerMock.Setup(x => x.PrepareInvokeMethod<ITestActor>(It.IsAny<Func<IActorClient>>(), It.IsAny<IEnumerable<Type>>(), It.IsAny<Type>())).Returns(typeof(ActorFactoryTests).GetRuntimeMethods().FirstOrDefault(x => x.Name == "TestMethod"));
+            this.actorClientManagerMock.Setup(x => x.PrepareInvokeMethod<ITestActorStr>(It.IsAny<Func<IActorClient>>(), It.IsAny<IEnumerable<Type>>(), It.IsAny<Type>())).Returns(typeof(ActorFactoryTests).GetRuntimeMethods().FirstOrDefault(x => x.Name == "TestMethod"));
             this.actorResponseFactoryMock = new Mock<IActorResponseFactory>();
             this.expressionHelperMock = new Mock<IExpressionHelper>();
             this.actorFactory = new ActorFactory(this.actorClientManagerMock.Object, this.actorResponseFactoryMock.Object, this.expressionHelperMock.Object);
@@ -34,38 +35,51 @@ namespace Qooba.ServerlessFabric.Tests
         [Fact]
         public void CreateActorTest()
         {
-            this.actorFactory.CreateActor<ITestActor>(new Uri("http://qooba.net"), () => this.actorClientMock.Object);
+            this.actorFactory.CreateActor<ITestActor>(new Uri("http://qooba.net"), () => this.actorClientMock.Object, true);
             this.actorClientManagerMock.Verify(x => x.PrepareInvokeMethod<ITestActor>(It.IsAny<Func<IActorClient>>(), It.IsAny<IEnumerable<Type>>(), It.IsAny<Type>()));
+            this.expressionHelperMock.Verify(x => x.CreateInstance(It.IsAny<Type>()));
+        }
+
+        [Fact]
+        public void CreateActorStrTest()
+        {
+            this.actorFactory.CreateActor<ITestActorStr>(new Uri("http://qooba.net"), () => this.actorClientMock.Object, true);
+            this.actorClientManagerMock.Verify(x => x.PrepareInvokeMethod<ITestActorStr>(It.IsAny<Func<IActorClient>>(), It.IsAny<IEnumerable<Type>>(), It.IsAny<Type>()));
             this.expressionHelperMock.Verify(x => x.CreateInstance(It.IsAny<Type>()));
         }
 
         [Fact]
         public void CreateActorExceptionTaskTest()
         {
-            Assert.Throws<InvalidOperationException>(() => this.actorFactory.CreateActor<ITestExeptionTaskActor>(new Uri("http://qooba.net"), () => this.actorClientMock.Object));
+            Assert.Throws<InvalidOperationException>(() => this.actorFactory.CreateActor<ITestExeptionTaskActor>(new Uri("http://qooba.net"), () => this.actorClientMock.Object, true));
         }
 
         [Fact]
         public void CreateActorExceptionPropertyTest()
         {
-            Assert.Throws<InvalidOperationException>(() => this.actorFactory.CreateActor<ITestExeptionPropertyActor>(new Uri("http://qooba.net"), () => this.actorClientMock.Object));
+            Assert.Throws<InvalidOperationException>(() => this.actorFactory.CreateActor<ITestExeptionPropertyActor>(new Uri("http://qooba.net"), () => this.actorClientMock.Object, true));
         }
 
         [Fact]
         public void CreateActorExceptionClassTest()
         {
-            Assert.Throws<InvalidOperationException>(() => this.actorFactory.CreateActor<TestExceptionActor>(new Uri("http://qooba.net"), () => this.actorClientMock.Object));
+            Assert.Throws<InvalidOperationException>(() => this.actorFactory.CreateActor<TestExceptionActor>(new Uri("http://qooba.net"), () => this.actorClientMock.Object, true));
         }
 
         [Fact]
         public void CreateActorExceptionMultipleArgsTest()
         {
-            Assert.Throws<InvalidOperationException>(() => this.actorFactory.CreateActor<ITestExeptionMultipleArgsActor>(new Uri("http://qooba.net"), () => this.actorClientMock.Object));
+            Assert.Throws<InvalidOperationException>(() => this.actorFactory.CreateActor<ITestExeptionMultipleArgsActor>(new Uri("http://qooba.net"), () => this.actorClientMock.Object, true));
         }
 
         public interface ITestActor
         {
             Task<TestActorResponse> Request(TestActorRequest request);
+        }
+
+        public interface ITestActorStr
+        {
+            Task<string> Request(string request);
         }
 
         public class TestExceptionActor

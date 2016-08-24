@@ -8,6 +8,6 @@ namespace Qooba.ServerlessFabric.Abstractions
 
         Type CreateActorResponseType(Type returnType);
 
-        Type PrepareResponseWrapper(Type returnType, string methodName = null);
+        Type PrepareResponseWrapper(Type returnType, string methodName, bool wrapResponse);
     }
 }

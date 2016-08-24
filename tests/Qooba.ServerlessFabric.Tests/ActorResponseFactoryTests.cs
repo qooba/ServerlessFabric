@@ -27,7 +27,7 @@ namespace Qooba.ServerlessFabric.Tests
         [Fact]
         public void PrepareResponseWrapper()
         {
-            var responseType = this.actorResponseFactory.PrepareResponseWrapper(typeof(TestResponseType), "MyMethod");
+            var responseType = this.actorResponseFactory.PrepareResponseWrapper(typeof(TestResponseType), "MyMethod", true);
             Assert.True(responseType.GetInterfaces().Contains(typeof(IActorResponseMessage)));
         }
 

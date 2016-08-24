@@ -36,27 +36,37 @@ namespace Qooba.ServerlessFabric
 
         public static TActor Create<TActor>(Uri url)
         {
+            return Create<TActor>(url, false);
+        }
+
+        public static TActor Create<TActor>(Uri url, bool wrapResponse)
+        {
             return Create<TActor>(url, () => new ActorHttpClient(new ActorResponseFactory(), new JsonSerializer(), new ExpressionHelper()));
         }
 
         public static TActor Create<TActor>(Uri url, Func<IActorClient> actorClientFactory)
         {
-            return instance.Value.CreateActor<TActor>(url, actorClientFactory);
+            return Create<TActor>(url, actorClientFactory, false);
         }
 
-        public TActor CreateActor<TActor>(Uri url, Func<IActorClient> actorClientFactory)
+        public static TActor Create<TActor>(Uri url, Func<IActorClient> actorClientFactory, bool wrapResponse)
+        {
+            return instance.Value.CreateActor<TActor>(url, actorClientFactory, wrapResponse);
+        }
+
+        public TActor CreateActor<TActor>(Uri url, Func<IActorClient> actorClientFactory, bool wrapResponse)
         {
             object actor;
             var actorType = typeof(TActor);
             if (!actorProxies.TryGetValue(actorType, out actor))
             {
-                actor = PrepareActorProxy<TActor>(url, actorClientFactory, actorType);
+                actor = PrepareActorProxy<TActor>(url, actorClientFactory, actorType, wrapResponse);
             }
 
             return (TActor)actor;
         }
 
-        private object PrepareActorProxy<TActor>(Uri url, Func<IActorClient> actorClientFactory, Type actorType)
+        private object PrepareActorProxy<TActor>(Uri url, Func<IActorClient> actorClientFactory, Type actorType, bool wrapResponse)
         {
             object actor;
             if (!actorType.GetTypeInfo().IsInterface)
@@ -109,7 +119,7 @@ namespace Qooba.ServerlessFabric
 
                 if (baseReturnType != null)
                 {
-                    this.actorResponseFactory.PrepareResponseWrapper(baseReturnType, methodName);
+                    this.actorResponseFactory.PrepareResponseWrapper(baseReturnType, methodName, wrapResponse);
                 }
             }
 
