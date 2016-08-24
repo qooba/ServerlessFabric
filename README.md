@@ -4,7 +4,7 @@
 Client:
 
 ```csharp
-var actor = Qooba.ServerlessFabric.ActorFactory.Create<ISmsSender>(new Uri("https://{myFunction}.azurewebsites.net/api/{myFunctionName}"));
+var actor = Qooba.ServerlessFabric.ActorFactory.Create<IMyActorInterface>(new Uri("https://{myFunction}.azurewebsites.net/api/{myFunctionName}"));
 ```
 
 Function:
