@@ -4,6 +4,10 @@
     {
         public const string METHOD_NAME = "methodName";
 
+        public const string CLIENT_REQUEST_RESPONSE_MULTIPLE = "InvokeRequestResponseMultiple";
+
+        public const string CLIENT_REQUEST_MULTIPLE = "InvokeRequestMultiple";
+
         public const string CLIENT_REQUEST_RESPONSE = "InvokeRequestResponse";
 
         public const string CLIENT_REQUEST = "InvokeRequest";

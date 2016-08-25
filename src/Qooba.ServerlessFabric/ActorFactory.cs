@@ -106,12 +106,21 @@ namespace Qooba.ServerlessFabric
                 var invokeMethod = this.actorClientManager.PrepareInvokeMethod<TActor>(actorClientFactory, parametersTypes, baseReturnType);
 
                 ILGenerator methIL = meth.GetILGenerator();
+                methIL.Emit(OpCodes.Nop);
                 methIL.Emit(OpCodes.Ldstr, url.ToString());
                 methIL.Emit(OpCodes.Ldstr, methodName);
 
-                if (parametersTypes.Length != 0)
+                var parametersTypesLength = parametersTypes.Length;
+                if (parametersTypesLength == 1)
                 {
                     methIL.Emit(OpCodes.Ldarg_1);
+                }
+                else if (parametersTypesLength > 1)
+                {
+                    for (int i = 1; i < parametersTypesLength + 1; i++)
+                    {
+                        methIL.Emit(OpCodes.Ldarg_S, i);
+                    }
                 }
 
                 methIL.Emit(OpCodes.Call, invokeMethod);

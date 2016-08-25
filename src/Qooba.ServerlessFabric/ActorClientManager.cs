@@ -13,9 +13,10 @@ namespace Qooba.ServerlessFabric
             var actorType = typeof(TActor);
             ActorClient.RegisterActorClient<TActor>(actorClientFactory);
             var actorClientMethods = typeof(ActorClient).GetRuntimeMethods();
-            if (parametersTypes.Count() == 0)
+            var parametersTypesNumber = parametersTypes.Count();
+            if (parametersTypesNumber == 0)
             {
-                if(returnType == null)
+                if (returnType == null)
                 {
                     return actorClientMethods.FirstOrDefault(x => x.Name == ActorConstants.CLIENT_VOID).MakeGenericMethod(actorType);
                 }
@@ -24,7 +25,7 @@ namespace Qooba.ServerlessFabric
                     return actorClientMethods.FirstOrDefault(x => x.Name == ActorConstants.CLIENT_RESPONSE).MakeGenericMethod(actorType, returnType);
                 }
             }
-            else
+            else if (parametersTypesNumber == 1)
             {
                 var parameterType = parametersTypes.FirstOrDefault();
                 if (returnType == null)
@@ -35,6 +36,10 @@ namespace Qooba.ServerlessFabric
                 {
                     return actorClientMethods.FirstOrDefault(x => x.Name == ActorConstants.CLIENT_REQUEST_RESPONSE).MakeGenericMethod(actorType, parameterType, returnType);
                 }
+            }
+            else
+            {
+                return null;
             }
         }
     }

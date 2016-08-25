@@ -15,6 +15,16 @@ namespace Qooba.ServerlessFabric
             actorClientFactories[typeof(TActor)] = actorClientFactory;
         }
 
+        public static async Task<TResponse> InvokeRequestResponseMultiple<TActor, TResponse>(string url, string methodName, params object[] request)
+        {
+            return await Task.FromResult(default(TResponse));
+        }
+
+        public static async Task InvokeRequestMultiple<TActor>(string url, string methodName, params object[] request)
+        {
+            await Task.CompletedTask;
+        }
+
         public static async Task<TResponse> InvokeRequestResponse<TActor, TRequest, TResponse>(string url, string methodName, TRequest request)
         {
             return await PrepareActorClient<TActor>().Invoke<TActor, TRequest, TResponse>(url, methodName, request);
