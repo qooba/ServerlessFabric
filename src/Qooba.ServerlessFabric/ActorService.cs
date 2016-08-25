@@ -9,7 +9,7 @@ namespace Qooba.ServerlessFabric
 {
     public class ActorService<TActor> : IActorService<TActor>
     {
-        private static readonly Lazy<ActorService<TActor>> instance = new Lazy<ActorService<TActor>>(() => new ActorService<TActor>(new ActorServiceInitializer<TActor>(new JsonSerializer()), new JsonSerializer()));
+        private static readonly Lazy<ActorService<TActor>> instance = new Lazy<ActorService<TActor>>(() => new ActorService<TActor>(new ActorServiceInitializer<TActor>(new JsonSerializer(), new ActorRequestFactory()), new JsonSerializer()));
 
         private readonly IActorServiceInitializer<TActor> actorServiceInitializer;
 

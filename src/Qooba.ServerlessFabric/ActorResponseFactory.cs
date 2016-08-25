@@ -5,20 +5,13 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Reflection;
-using System.Reflection.Emit;
 
 namespace Qooba.ServerlessFabric
 {
-    public class ActorResponseFactory : IActorResponseFactory
+    public class ActorResponseFactory : BaseTypeFactory, IActorResponseFactory
     {
         private static IDictionary<Type, Type> actorResponseWrappers = new ConcurrentDictionary<Type, Type>();
-
-#if (NET46 || NET461)
-        private static Lazy<ModuleBuilder> mb = new Lazy<ModuleBuilder>(() => AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(ActorConstants.RESPONSE_ASSEMBLY_NAME), AssemblyBuilderAccess.Run).DefineDynamicModule(ActorConstants.RESPONSE_MODULE_NAME));
-#else
-        private static Lazy<ModuleBuilder> mb = new Lazy<ModuleBuilder>(() => AssemblyBuilder.DefineDynamicAssembly(new AssemblyName(ActorConstants.RESPONSE_ASSEMBLY_NAME), AssemblyBuilderAccess.Run).DefineDynamicModule(ActorConstants.RESPONSE_MODULE_NAME));
-#endif
-
+        
         public Type CreateActorResponseType<TResponse>()
         {
             return CreateActorResponseType(typeof(TResponse));
@@ -42,7 +35,7 @@ namespace Qooba.ServerlessFabric
             if (wrapResponse && returnTypeInfo.IsClass && returnTypeInfo.GetConstructor(Type.EmptyTypes) != null)
             {
                 var name = returnType.Name;
-                var responseWrapper = mb.Value.DefineType($"{ActorConstants.RESPONSE_TYPE_NAME_PREFIX}{methodName}{name}", TypeAttributes.Public | TypeAttributes.Class);
+                var responseWrapper = this.ModuleBuilder.DefineType($"{ActorConstants.RESPONSE_TYPE_NAME_PREFIX}{methodName}{name}", TypeAttributes.Public | TypeAttributes.Class);
                 responseWrapper.SetParent(returnType);
                 responseWrapper.AddInterfaceImplementation(typeof(IActorResponseMessage));
 
@@ -55,30 +48,6 @@ namespace Qooba.ServerlessFabric
 
             actorResponseWrappers[returnType] = wrapperType;
             return wrapperType;
-        }
-
-        private static void CreateProperty(TypeBuilder responseWrapper, string propertyName, Type propertyType)
-        {
-            FieldBuilder priv = responseWrapper.DefineField($"_{propertyName}", propertyType, FieldAttributes.Private);
-            PropertyBuilder prop = responseWrapper.DefineProperty(propertyName, PropertyAttributes.HasDefault, propertyType, null);
-            MethodAttributes propAttributes = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Virtual;
-            MethodBuilder propGetAccessor = responseWrapper.DefineMethod($"get_{propertyName}", propAttributes, propertyType, Type.EmptyTypes);
-
-            ILGenerator propGetIL = propGetAccessor.GetILGenerator();
-            propGetIL.Emit(OpCodes.Ldarg_0);
-            propGetIL.Emit(OpCodes.Ldfld, priv);
-            propGetIL.Emit(OpCodes.Ret);
-
-            MethodBuilder propSetAccessor = responseWrapper.DefineMethod($"set_{propertyName}", propAttributes, null, new Type[] { propertyType });
-
-            ILGenerator propSetIL = propSetAccessor.GetILGenerator();
-            propSetIL.Emit(OpCodes.Ldarg_0);
-            propSetIL.Emit(OpCodes.Ldarg_1);
-            propSetIL.Emit(OpCodes.Stfld, priv);
-            propSetIL.Emit(OpCodes.Ret);
-
-            prop.SetGetMethod(propGetAccessor);
-            prop.SetSetMethod(propSetAccessor);
         }
     }
 }

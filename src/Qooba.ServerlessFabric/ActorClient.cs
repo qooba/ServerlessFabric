@@ -10,19 +10,39 @@ namespace Qooba.ServerlessFabric
     {
         private static IDictionary<Type, Func<IActorClient>> actorClientFactories = new ConcurrentDictionary<Type, Func<IActorClient>>();
 
+        private static IActorRequestFactory actorRequestFactory;
+
+        private static readonly object alock = new object();
+
         public static void RegisterActorClient<TActor>(Func<IActorClient> actorClientFactory)
         {
             actorClientFactories[typeof(TActor)] = actorClientFactory;
         }
 
+        public static void SetActorRequestFactory(IActorRequestFactory actorRequestFactory)
+        {
+            if (ActorClient.actorRequestFactory == null)
+            {
+                lock (alock)
+                {
+                    if (ActorClient.actorRequestFactory == null)
+                    {
+                        ActorClient.actorRequestFactory = actorRequestFactory;
+                    }
+                }
+            }
+        }
+
         public static async Task<TResponse> InvokeRequestResponseMultiple<TActor, TResponse>(string url, string methodName, params object[] request)
         {
-            return await Task.FromResult(default(TResponse));
+            var req = actorRequestFactory.CreateActorResponse(request);
+            return await PrepareActorClient<TActor>().Invoke<TActor, TResponse>(url, methodName, req, req.GetType());
         }
 
         public static async Task InvokeRequestMultiple<TActor>(string url, string methodName, params object[] request)
         {
-            await Task.CompletedTask;
+            var req = actorRequestFactory.CreateActorResponse(request);
+            await PrepareActorClient<TActor>().Invoke<TActor>(url, methodName, req, req.GetType());
         }
 
         public static async Task<TResponse> InvokeRequestResponse<TActor, TRequest, TResponse>(string url, string methodName, TRequest request)
@@ -44,7 +64,7 @@ namespace Qooba.ServerlessFabric
         {
             await PrepareActorClient<TActor>().Invoke<TActor>(url, methodName);
         }
-        
+
         private static IActorClient PrepareActorClient<TActor>()
         {
             Func<IActorClient> actorFactory;

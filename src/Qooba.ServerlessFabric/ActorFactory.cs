@@ -9,17 +9,11 @@ using System.Threading.Tasks;
 
 namespace Qooba.ServerlessFabric
 {
-    public class ActorFactory : IActorFactory
+    public class ActorFactory : BaseTypeFactory, IActorFactory
     {
-        private static readonly Lazy<ActorFactory> instance = new Lazy<ActorFactory>(() => new ActorFactory(new ActorClientManager(), new ActorResponseFactory(), new ExpressionHelper()));
+        private static readonly Lazy<ActorFactory> instance = new Lazy<ActorFactory>(() => new ActorFactory(new ActorClientManager(), new ActorResponseFactory(), new ExpressionHelper(), new ActorRequestFactory()));
 
         private static IDictionary<Type, object> actorProxies = new ConcurrentDictionary<Type, object>();
-
-#if (NET46 || NET461)
-        private static Lazy<ModuleBuilder> mb = new Lazy<ModuleBuilder>(() => AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(ActorConstants.ASSEMBLY_NAME), AssemblyBuilderAccess.Run).DefineDynamicModule(ActorConstants.MODULE_NAME));
-#else
-        private static Lazy<ModuleBuilder> mb = new Lazy<ModuleBuilder>(() => AssemblyBuilder.DefineDynamicAssembly(new AssemblyName(ActorConstants.ASSEMBLY_NAME), AssemblyBuilderAccess.Run).DefineDynamicModule(ActorConstants.MODULE_NAME));
-#endif
 
         private readonly IActorClientManager actorClientManager;
 
@@ -27,11 +21,12 @@ namespace Qooba.ServerlessFabric
 
         private readonly IExpressionHelper expressionHelper;
 
-        public ActorFactory(IActorClientManager actorClientManager, IActorResponseFactory actorResponseFactory, IExpressionHelper expressionHelper)
+        public ActorFactory(IActorClientManager actorClientManager, IActorResponseFactory actorResponseFactory, IExpressionHelper expressionHelper, IActorRequestFactory actorRequestFactory)
         {
             this.actorClientManager = actorClientManager;
             this.actorResponseFactory = actorResponseFactory;
             this.expressionHelper = expressionHelper;
+            ActorClient.SetActorRequestFactory(actorRequestFactory);
         }
 
         public static TActor Create<TActor>(Uri url)
@@ -81,7 +76,7 @@ namespace Qooba.ServerlessFabric
                 throw new InvalidOperationException("Upps ... TActor can't have properties");
             }
 
-            TypeBuilder tb = mb.Value.DefineType($"{ActorConstants.TYPE_NAME_PREFIX}{actorType.Name}", TypeAttributes.Public | TypeAttributes.Class);
+            TypeBuilder tb = this.ModuleBuilder.DefineType($"{ActorConstants.TYPE_NAME_PREFIX}{actorType.Name}", TypeAttributes.Public | TypeAttributes.Class);
             tb.AddInterfaceImplementation(actorType);
             var actorMethodNames = actorMethods.Select(x => x.Name).ToList();
 
@@ -89,11 +84,6 @@ namespace Qooba.ServerlessFabric
             {
                 var methodName = actorMethod.Name;
                 var parametersTypes = actorMethod.GetParameters().Select(x => x.ParameterType).ToArray();
-                if (parametersTypes.Length > 1)
-                {
-                    throw new InvalidOperationException("Upps ... TActor method can have only one request parameter");
-                }
-
                 var returnType = actorMethod.ReturnType;
                 if (returnType != typeof(Task) && returnType.GetGenericTypeDefinition() != typeof(Task<>))
                 {
@@ -117,9 +107,15 @@ namespace Qooba.ServerlessFabric
                 }
                 else if (parametersTypesLength > 1)
                 {
-                    for (int i = 1; i < parametersTypesLength + 1; i++)
+                    methIL.Emit(OpCodes.Ldc_I4, parametersTypesLength);
+                    methIL.Emit(OpCodes.Newarr, typeof(object));
+                    for (int i = 0; i < parametersTypesLength; i++)
                     {
-                        methIL.Emit(OpCodes.Ldarg_S, i);
+                        methIL.Emit(OpCodes.Dup);
+                        methIL.Emit(OpCodes.Ldc_I4, i);
+                        methIL.Emit(OpCodes.Ldarg_S, i + 1);
+                        methIL.Emit(OpCodes.Box, parametersTypes[i]);
+                        methIL.Emit(OpCodes.Stelem_Ref);
                     }
                 }
 

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace Qooba.ServerlessFabric.Abstractions
 {
@@ -6,7 +7,11 @@ namespace Qooba.ServerlessFabric.Abstractions
     {
         Task<TResponse> Invoke<TActor, TRequest, TResponse>(string url, string methodName, TRequest request);
 
+        Task<TResponse> Invoke<TActor, TResponse>(string url, string methodName, object request, Type requestType);
+
         Task Invoke<TActor, TRequest>(string url, string methodName, TRequest request);
+
+        Task Invoke<TActor>(string url, string methodName, object request, Type requestType);
 
         Task<TResponse> Invoke<TActor, TResponse>(string url, string methodName);
 

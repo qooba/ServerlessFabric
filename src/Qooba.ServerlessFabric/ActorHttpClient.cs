@@ -32,11 +32,35 @@ namespace Qooba.ServerlessFabric
             }
         }
 
+        public async Task<TResponse> Invoke<TActor, TResponse>(string url, string methodName, object request, Type requestType)
+        {
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = PrepareUri(url, methodName, requestType.Name, typeof(TResponse).Name);
+                HttpResponseMessage response = await PostAsync(request, client);
+                return await PrepareResponse<TResponse>(response);
+            }
+        }
+
         public async Task Invoke<TActor, TRequest>(string url, string methodName, TRequest request)
         {
             using (var client = new HttpClient())
             {
                 client.BaseAddress = PrepareUri(url, methodName, typeof(TRequest).Name, string.Empty);
+                var response = await PostAsync(request, client);
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorMessage = await response.Content.ReadAsStringAsync();
+                    throw new Exception(errorMessage);
+                }
+            }
+        }
+
+        public async Task Invoke<TActor>(string url, string methodName, object request, Type requestType)
+        {
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = PrepareUri(url, methodName, requestType.Name, string.Empty);
                 var response = await PostAsync(request, client);
                 if (!response.IsSuccessStatusCode)
                 {

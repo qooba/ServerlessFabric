@@ -19,6 +19,8 @@ namespace Qooba.ServerlessFabric.Tests
 
         private readonly Mock<IActorResponseFactory> actorResponseFactoryMock;
 
+        private readonly Mock<IActorRequestFactory> actorRequestFactoryMock;
+
         private readonly Mock<IExpressionHelper> expressionHelperMock;
 
         public ActorFactoryTests()
@@ -28,8 +30,9 @@ namespace Qooba.ServerlessFabric.Tests
             this.actorClientManagerMock.Setup(x => x.PrepareInvokeMethod<ITestActor>(It.IsAny<Func<IActorClient>>(), It.IsAny<IEnumerable<Type>>(), It.IsAny<Type>())).Returns(typeof(ActorFactoryTests).GetRuntimeMethods().FirstOrDefault(x => x.Name == "TestMethod"));
             this.actorClientManagerMock.Setup(x => x.PrepareInvokeMethod<ITestActorStr>(It.IsAny<Func<IActorClient>>(), It.IsAny<IEnumerable<Type>>(), It.IsAny<Type>())).Returns(typeof(ActorFactoryTests).GetRuntimeMethods().FirstOrDefault(x => x.Name == "TestMethod"));
             this.actorResponseFactoryMock = new Mock<IActorResponseFactory>();
+            this.actorRequestFactoryMock = new Mock<IActorRequestFactory>();
             this.expressionHelperMock = new Mock<IExpressionHelper>();
-            this.actorFactory = new ActorFactory(this.actorClientManagerMock.Object, this.actorResponseFactoryMock.Object, this.expressionHelperMock.Object);
+            this.actorFactory = new ActorFactory(this.actorClientManagerMock.Object, this.actorResponseFactoryMock.Object, this.expressionHelperMock.Object, this.actorRequestFactoryMock.Object);
         }
 
         [Fact]

@@ -39,7 +39,15 @@ namespace Qooba.ServerlessFabric
             }
             else
             {
-                return null;
+                var parameterType = parametersTypes.FirstOrDefault();
+                if (returnType == null)
+                {
+                    return actorClientMethods.FirstOrDefault(x => x.Name == ActorConstants.CLIENT_REQUEST_MULTIPLE).MakeGenericMethod(actorType);
+                }
+                else
+                {
+                    return actorClientMethods.FirstOrDefault(x => x.Name == ActorConstants.CLIENT_REQUEST_RESPONSE_MULTIPLE).MakeGenericMethod(actorType, returnType);
+                }
             }
         }
     }

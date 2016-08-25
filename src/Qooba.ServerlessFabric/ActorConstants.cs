@@ -28,5 +28,7 @@
 
         public const string RESPONSE_TYPE_NAME_PREFIX = "ActorFactoryResponseWrapper";
 
+        public const string REQUEST_TYPE_NAME_PREFIX = "ActorFactoryRequestWrapper";
+
     }
 }

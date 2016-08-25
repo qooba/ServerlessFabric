@@ -16,9 +16,12 @@ namespace Qooba.ServerlessFabric
 
         private readonly ISerializer serializer;
 
-        public ActorServiceInitializer(ISerializer serializer)
+        private readonly IActorRequestFactory actorRequestFactory;
+
+        public ActorServiceInitializer(ISerializer serializer, IActorRequestFactory actorRequestFactory)
         {
             this.serializer = serializer;
+            this.actorRequestFactory = actorRequestFactory;
         }
 
         public Func<TActor, string, Task<object>> PreapareActorMethod(TActor actorInstance, string methodName)
@@ -44,43 +47,49 @@ namespace Qooba.ServerlessFabric
 
             foreach (var actorMethod in actorMethods)
             {
-                var methodName = actorMethod.Name;
-                var parametersTypes = actorMethod.GetParameters().Select(x => x.ParameterType).ToArray();
-                if (parametersTypes.Length > 1)
-                {
-                    throw new InvalidOperationException("Upps ... TActor method can have only one request parameter");
-                }
 
+                var parametersTypes = actorMethod.GetParameters().Select(x => x.ParameterType).ToArray();
                 var returnType = actorMethod.ReturnType;
                 if (returnType != typeof(Task) && returnType.GetGenericTypeDefinition() != typeof(Task<>))
                 {
                     throw new InvalidOperationException("Upps ... TActor method must be async");
                 }
 
-                Type baseReturnType = returnType == typeof(Task) ? null : returnType.GenericTypeArguments.FirstOrDefault();
-                var requestName = parametersTypes.Select(x => x.Name).FirstOrDefault();
-                var responseName = returnType == typeof(Task) ? string.Empty : baseReturnType.Name;
-                var actorMethodKey = ActorMethodHelper.PrepareMethodQueryString(methodName, requestName, responseName);
-
-                actorMethodsCache[actorMethodKey] = PreapreAction(actorInstanceType, actorMethod, parametersTypes.FirstOrDefault(), returnType);
+                PreapreAction(actorInstanceType, actorMethod, parametersTypes, returnType);
             }
         }
 
-        private Func<TActor, string, Task<object>> PreapreAction(Type actorInstanceType, MethodInfo method, Type requestType, Type responseType)
+        private void PreapreAction(Type actorInstanceType, MethodInfo method, Type[] parametersTypes, Type responseType)
         {
             var actorType = typeof(TActor);
             var actorParam = Expression.Parameter(actorType);
-
+            var parametersTypesNumber = parametersTypes.Count();
             Func<TActor, object, Task> callActorMethod = null;
             Func<TActor, Task> callActorNoRequestMethod = null;
-            if (requestType != null)
+            Type requestType = null;
+
+            if (parametersTypesNumber == 0)
             {
+                callActorNoRequestMethod = Expression.Lambda<Func<TActor, Task>>(Expression.Convert(Expression.Call(Expression.Convert(actorParam, actorInstanceType), method), typeof(Task)), actorParam).Compile();
+            }
+            else if (parametersTypesNumber == 1)
+            {
+                requestType = parametersTypes.FirstOrDefault();
                 var requestParam = Expression.Parameter(typeof(object));
                 callActorMethod = Expression.Lambda<Func<TActor, object, Task>>(Expression.Convert(Expression.Call(Expression.Convert(actorParam, actorInstanceType), method, Expression.Convert(requestParam, requestType)), typeof(Task)), actorParam, requestParam).Compile();
             }
             else
             {
-                callActorNoRequestMethod = Expression.Lambda<Func<TActor, Task>>(Expression.Convert(Expression.Call(Expression.Convert(actorParam, actorInstanceType), method), typeof(Task)), actorParam).Compile();
+                requestType = this.actorRequestFactory.CreateActorRequestType(parametersTypes);
+                var requestParam = Expression.Parameter(typeof(object));
+                var expressionAgruments = new List<Expression>();
+                for (int i = 0; i < parametersTypes.Count(); i++)
+                {
+                    var property = Expression.Property(Expression.Convert(requestParam, requestType), $"Prop{i}");
+                    expressionAgruments.Add(property);
+                }
+
+                callActorMethod = Expression.Lambda<Func<TActor, object, Task>>(Expression.Convert(Expression.Call(Expression.Convert(actorParam, actorInstanceType), method, expressionAgruments), typeof(Task)), actorParam, requestParam).Compile();
             }
 
             Func<Task, object> getActorMethodResponse = null;
@@ -94,21 +103,28 @@ namespace Qooba.ServerlessFabric
             Func<TActor, string, Task<object>> func = async (actor, req) =>
             {
                 Task resTask = null;
-                if (requestType != null)
+
+                if (requestType == null)
                 {
-                    var request = this.serializer.DeserializeObject(req, requestType);
-                    resTask = callActorMethod(actor, request);
+                    resTask = callActorNoRequestMethod(actor);
                 }
                 else
                 {
-                    resTask = callActorNoRequestMethod(actor);
+                    var request = this.serializer.DeserializeObject(req, requestType);
+                    resTask = callActorMethod(actor, request);
                 }
 
                 await resTask;
                 return getActorMethodResponse != null ? getActorMethodResponse(resTask) : null;
             };
 
-            return func;
+
+            var methodName = method.Name;
+            var requestName = requestType != null ? requestType.Name : string.Empty;
+            var baseReturnType = responseType == typeof(Task) ? null : responseType.GenericTypeArguments.FirstOrDefault();
+            var responseName = responseType == typeof(Task) ? string.Empty : baseReturnType.Name;
+            var actorMethodKey = ActorMethodHelper.PrepareMethodQueryString(methodName, requestName, responseName);
+            actorMethodsCache[actorMethodKey] = func;
         }
     }
 }
