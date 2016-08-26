@@ -309,7 +309,7 @@ public class SmsSendResponse
 
 And it's done :).
 
-Please notice that we put interface definition (and also reqeust and responses classes) again in function. To not duplicate the code we can move all definitions
+Please notice that we put interface definition (and also request and response classes) again in function. To not duplicate the code we can move all definitions
 into domain project, compile it into dll and use in client and function.
 To use dll in Azure function you have to create bin directory put dll. Then you have to add:
 
