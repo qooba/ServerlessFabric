@@ -4,7 +4,7 @@ In this approach each microservice (published as Azure Function) is a class with
 The library automatically creates the proxied and handlers. In fact you can create the application as a monolith (with correctly defined interfaces) 
 and than split into microservices without much effort.
 
- ## Client side:
+## Client side:
 
 Let's assume that we have MVC application which has to send sms.
 We have interface:
