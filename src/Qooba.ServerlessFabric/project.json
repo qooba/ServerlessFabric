@@ -1,16 +1,21 @@
-{
-  "version": "1.0.0-alpha2",
+﻿{
+  "version": "1.0.0-alpha3",
+  "authors": [ "Jakub Sołtys" ],
+  "owners": [ "Jakub Sołtys" ],
+  "projectUrl": "https://github.com/qooba/ServerlessFabric",
+  "description": ".NET library for creating serverless actors microservices using Azure Functions.",
+  "title": "Qooba.ServerlessFabric",
+  "iconUrl": "https://raw.githubusercontent.com/qooba/ServerlessFabric/master/icon.png",
   "packOptions": {
-    "owners": [ "Jakub So�tys" ],
+    "owners": [ "Jakub Sołtys" ],
     "tags": [ "serverless", "azure", "azure functions" ],
     "licenseUrl": "https://raw.github.com/qooba/ServerlessFabric/master/LICENSE",
     "requireLicenseAcceptance": false,
     "iconUrl": "https://raw.githubusercontent.com/qooba/ServerlessFabric/master/icon.png",
-
     "summary": ".NET library for creating serverless actors microservices using Azure Functions."
   },
   "dependencies": {
-    
+
   },
   "frameworks": {
     "net46": {
