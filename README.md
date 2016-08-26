@@ -191,24 +191,8 @@ we also edit file run.csx and put:
 using System.Net;
 using Qooba.ServerlessFabric;
 
-public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log)
-{
-    var request = await req.Content.ReadAsStringAsync();
-    log.Info(request);
-    log.Info(req.RequestUri.ToString());
+public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log) => await ActorService<ISmsSender>.Create(req, () => new SmsSender(log));
 
-    try
-    {
-        return await ActorService<ISmsSender>.Create(req, () => new SmsSender(log));
-    }
-    catch (Exception ex)
-    {
-        log.Info(ex.Message);
-        log.Info(ex.StackTrace);
-        throw;
-    }
-
-}
 
 public class SmsSender : ISmsSender
 {
@@ -311,6 +295,18 @@ And it's done :).
 
 Please notice that we put interface definition (and also request and response classes) again in function. To not duplicate the code we can move all definitions
 into domain project, compile it into dll and use in client and function.
+You can also put the SmsSender implementation class into separate dll and also use it in Azure Function
+In this case Function definition we have:
+```csharp
+#r "{dll with domain}.dll"
+#r "{dll with interface implementation}.dll"
+
+using System.Net;
+using Qooba.ServerlessFabric;
+
+public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log) => await ActorService<ISmsSender>.Create(req, () => new SmsSender(log));
+```
+
 To use dll in Azure function you have to create bin directory put dll. Then you have to add:
 
 ```csharp
