@@ -36,7 +36,7 @@ namespace Qooba.ServerlessFabric
 
         public static TActor Create<TActor>(Uri url, bool wrapResponse)
         {
-            return Create<TActor>(url, () => new ActorHttpClient(new ActorResponseFactory(), new JsonSerializer(), new ExpressionHelper()));
+            return Create<TActor>(url, () => new ActorHttpClient(new ActorResponseFactory(), new JsonSerializer(), new ExpressionHelper()), wrapResponse);
         }
 
         public static TActor Create<TActor>(Uri url, Func<IActorClient> actorClientFactory)
