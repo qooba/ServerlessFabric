@@ -27,3 +27,4 @@ project.lock.json
 /src/Qooba.Framework.Web.Abstractions/project.lock.json
 /src/Qooba.Framework.Abstractions/project.lock.json
 /test/Qooba.Framework.Tests/project.lock.json
+nugetpush.ps1
